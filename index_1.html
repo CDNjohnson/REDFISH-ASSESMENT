@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Type Preferences Index — Redfish / AeroBarrier</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --bg:            #F4F6F5;
+    --page-plane:    #EEF2F1;
+    --surface:       #FFFFFF;
+    --ink:           #16232A;
+    --ink-secondary: #4B5F68;
+    --ink-muted:     #7E8F96;
+    --line:          #D8E0E0;
+    --line-strong:   #B9C6C6;
+    --accent:        #1C5F7A;
+    --accent-ink:    #FFFFFF;
+    --accent-soft:   #DCEBEF;
+    --warm:          #B85A28;
+    --warm-soft:     #F3E1D3;
+    --track:         #E1E7E6;
+    --danger:        #A6402C;
+    --good:          #2F7A4F;
+    --shadow:        0 1px 2px rgba(22,35,42,0.06), 0 8px 24px rgba(22,35,42,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--page-plane); color:var(--ink);
+    font-family:"Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding-inline:16px; padding-block:32px; -webkit-font-smoothing:antialiased;
+  }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+  .display{ font-family:"Big Shoulders Display", system-ui, sans-serif; font-weight:800; letter-spacing:0.01em; }
+  .wrap{ max-width:660px; margin:0 auto; }
+  .masthead{
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+    padding-bottom:14px; margin-bottom:22px; border-bottom:2px solid var(--ink); flex-wrap:wrap;
+  }
+  .masthead-id{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:0.09em; text-transform:uppercase; color:var(--ink-secondary); }
+  .masthead-id b{ color:var(--ink); font-weight:600; }
+  .masthead-doc{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-muted); letter-spacing:0.04em; }
+  .masthead-logo{ height:40px; width:auto; max-width:60%; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); padding:36px; }
+  @media (max-width:520px){ .card{ padding:22px 18px; } }
+  h1.title{ font-size:clamp(30px, 6vw, 40px); line-height:1.05; margin:0 0 10px; text-wrap:balance; }
+  p.lede{ font-size:16.5px; line-height:1.6; color:var(--ink-secondary); max-width:56ch; margin:0 0 22px; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-secondary); margin-bottom:6px; }
+  .field input[type="text"]{ width:100%; font-family:inherit; font-size:16px; color:var(--ink); background:var(--bg); border:1px solid var(--line-strong); border-radius:4px; padding:11px 12px; }
+  .field input[type="text"]:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+  .field-err{ font-size:13px; color:var(--danger); margin-top:6px; display:none; }
+  .field-err.show{ display:block; }
+  .note{ font-size:13.5px; line-height:1.55; color:var(--ink-muted); border-top:1px solid var(--line); margin-top:26px; padding-top:16px; }
+  button{ font-family:inherit; cursor:pointer; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; font-size:15px; font-weight:600; border-radius:4px; padding:12px 22px; border:1px solid transparent; transition:transform .12s ease, background .12s ease; }
+  .btn:active{ transform:translateY(1px); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-primary:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--ink-secondary); border-color:var(--line-strong); }
+  .btn-ghost:hover{ color:var(--ink); border-color:var(--ink-secondary); }
+  .progress-wrap{ margin-bottom:28px; }
+  .progress-meta{ display:flex; justify-content:space-between; font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-secondary); margin-bottom:8px; }
+  .progress-track{ position:relative; height:8px; background:var(--track); border-radius:4px; overflow:hidden; }
+  .progress-fill{ position:absolute; inset:0 auto 0 0; width:0%; background:var(--accent); border-radius:4px; transition:width .25s ease; }
+  .q-eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--warm); margin-bottom:10px; }
+  fieldset{ border:none; margin:0; padding:0; }
+  legend{ font-size:clamp(19px,3.6vw,23px); line-height:1.4; font-weight:600; color:var(--ink); padding:0; margin-bottom:26px; text-wrap:balance; }
+  .likert{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin-bottom:28px; }
+  @media (max-width:480px){ .likert{ grid-template-columns:1fr; } }
+  .likert-opt{ position:relative; }
+  .likert-opt input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+  .likert-opt label{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; height:100%; min-height:84px; padding:10px 6px; border:1px solid var(--line-strong); border-radius:4px; background:var(--bg); color:var(--ink-secondary); font-size:12.5px; font-weight:600; line-height:1.25; transition:border-color .12s ease, background .12s ease, color .12s ease; }
+  @media (max-width:480px){ .likert-opt label{ flex-direction:row; justify-content:flex-start; min-height:0; padding:13px 14px; text-align:left; } }
+  .likert-tick{ width:16px; height:16px; border-radius:50%; border:2px solid var(--line-strong); flex:0 0 auto; }
+  .likert-opt input:checked + label{ border-color:var(--accent); background:var(--accent-soft); color:var(--ink); }
+  .likert-opt input:checked + label .likert-tick{ border-color:var(--accent); background:var(--accent); }
+  .likert-opt input:focus-visible + label{ outline:2px solid var(--accent); outline-offset:2px; }
+  .quiz-nav{ display:flex; justify-content:space-between; align-items:center; }
+  .quiz-hint{ font-size:12.5px; color:var(--ink-muted); margin-top:14px; text-align:center; }
+  .result-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:6px; }
+  .result-who{ font-size:14.5px; color:var(--ink-secondary); }
+  .result-who b{ color:var(--ink); }
+  .result-date{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-muted); }
+  .type-code{ font-size:clamp(58px, 15vw, 92px); line-height:0.95; color:var(--accent); margin:6px 0 2px; }
+  .type-tagline{ font-size:17px; color:var(--ink-secondary); margin-bottom:26px; max-width:52ch; line-height:1.55; }
+  .meters{ display:flex; flex-direction:column; gap:22px; margin:26px 0 30px; }
+  .meter-labels{ display:flex; justify-content:space-between; font-size:12.5px; font-weight:600; letter-spacing:0.02em; color:var(--ink-secondary); margin-bottom:8px; }
+  .meter-labels .active{ color:var(--ink); }
+  .meter-track{ position:relative; height:10px; background:var(--track); border-radius:4px; margin-bottom:6px; }
+  .meter-fill{ position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:4px; }
+  .meter-ticks{ position:absolute; inset:0; display:flex; justify-content:space-between; }
+  .meter-ticks span{ width:1px; height:100%; background:rgba(0,0,0,0.08); }
+  .meter-marker{ position:absolute; top:-5px; width:2px; height:20px; background:var(--ink); transform:translateX(-1px); }
+  .meter-foot{ display:flex; justify-content:space-between; font-size:13px; color:var(--ink-secondary); }
+  .meter-foot .pct{ font-family:"IBM Plex Mono", monospace; color:var(--ink); font-weight:600; }
+  .type-desc{ font-size:16px; line-height:1.65; color:var(--ink); background:var(--bg); border-left:3px solid var(--warm); padding:16px 18px; border-radius:0 4px 4px 0; margin-bottom:26px; }
+  .results-actions{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .copy-flash{ font-size:13px; color:var(--accent); margin-left:2px; align-self:center; display:none; }
+  .copy-flash.show{ display:inline; }
+  .save-status{ font-size:12.5px; margin-top:14px; font-family:"IBM Plex Mono", monospace; }
+  .save-status.pending{ color:var(--ink-muted); }
+  .save-status.ok{ color:var(--good); }
+  .save-status.err{ color:var(--danger); }
+  [hidden]{ display:none !important; }
+  @media print{
+    body{ background:#fff; padding:0; }
+    .masthead-id, .masthead-doc{ color:#000; }
+    .card{ box-shadow:none; border:none; padding:0; }
+    .results-actions, .save-status, .q-eyebrow ~ .quiz-nav { display:none !important; }
+    .type-code{ color:#000; }
+    .meter-fill{ background:#555 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="masthead">
+    <img src="redfish-logo.png" alt="Redfish Investments" class="masthead-logo">
+    <div class="masthead-doc">FORM TPI&#8209;60</div>
+  </div>
+
+  <div class="card">
+
+    <!-- ===================== INTRO ===================== -->
+    <section id="screen-intro">
+      <h1 class="title display">Type Preferences Index</h1>
+      <p class="lede">This is a 60-statement work-style questionnaire built around the four preference pairs &mdash; how you focus energy, take in information, make decisions, and approach structure. There are no right answers; respond with your first instinct.</p>
+
+      <div class="field">
+        <label for="in-name">Candidate name</label>
+        <input type="text" id="in-name" autocomplete="off" placeholder="e.g. Jordan Alvarez">
+        <div class="field-err" id="name-err">Enter a name before starting &mdash; results aren&rsquo;t attributed otherwise.</div>
+      </div>
+      <div class="field">
+        <label for="in-role">Position applying for <span style="text-transform:none;font-weight:400;">(optional)</span></label>
+        <input type="text" id="in-role" autocomplete="off" placeholder="e.g. Operations Assistant">
+      </div>
+      <div class="field">
+        <label for="in-email">Email</label>
+        <input type="text" id="in-email" autocomplete="off" placeholder="e.g. jordan@example.com">
+        <div class="field-err" id="email-err">Enter an email address before starting.</div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-start" type="button">Begin assessment &rarr;</button>
+
+      <p class="note">This is an internal, informal instrument &mdash; not a licensed or validated psychometric test, and not affiliated with Redfish Investments. Use the result to guide conversation about working style and team fit; it shouldn&rsquo;t be the sole basis for a hiring decision, and candidates should never be screened out on type alone. Takes about 10&ndash;15 minutes. Your name and responses will be saved and shared with the hiring team at Redfish / AeroBarrier.</p>
+    </section>
+
+    <!-- ===================== QUIZ ===================== -->
+    <section id="screen-quiz" hidden>
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="q-counter" class="mono">QUESTION 1 / 60</span>
+          <span id="q-name" class="mono"></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <div class="q-eyebrow">Rate how much you agree</div>
+      <form id="q-form">
+        <fieldset>
+          <legend id="q-text">&nbsp;</legend>
+          <div class="likert" id="likert-group">
+            <div class="likert-opt">
+              <input type="radio" name="likert" id="opt1" value="1">
+              <label for="opt1"><span class="likert-tick"></span>Strongly disagree</label>
+            </div>
+            <div class="likert-opt">
+              <input type="radio" name="likert" id="opt2" value="2">
+              <label for="opt2"><span class="likert-tick"></span>Disagree</label>
+            </div>
+            <div class="likert-opt">
+              <input type="radio" name="likert" id="opt3" value="3">
+              <label for="opt3"><span class="likert-tick"></span>Neutral</label>
+            </div>
+            <div class="likert-opt">
+              <input type="radio" name="likert" id="opt4" value="4">
+              <label for="opt4"><span class="likert-tick"></span>Agree</label>
+            </div>
+            <div class="likert-opt">
+              <input type="radio" name="likert" id="opt5" value="5">
+              <label for="opt5"><span class="likert-tick"></span>Strongly agree</label>
+            </div>
+          </div>
+        </fieldset>
+      </form>
+
+      <div class="quiz-nav">
+        <button class="btn btn-ghost" id="btn-back" type="button">&larr; Back</button>
+        <button class="btn btn-primary" id="btn-next" type="button" disabled>Next &rarr;</button>
+      </div>
+      <p class="quiz-hint">Keyboard: press 1&ndash;5 to select, Enter to continue.</p>
+    </section>
+
+    <!-- ===================== RESULTS ===================== -->
+    <section id="screen-results" hidden>
+      <div class="result-head">
+        <div class="result-who">Candidate: <b id="res-name"></b><span id="res-role-wrap"> &nbsp;&middot;&nbsp; Role: <b id="res-role"></b></span></div>
+        <div class="result-date mono" id="res-date"></div>
+      </div>
+
+      <div class="type-code display" id="res-code">????</div>
+      <p class="type-tagline" id="res-tagline"></p>
+
+      <div class="meters" id="res-meters"></div>
+
+      <div class="type-desc" id="res-desc"></div>
+
+      <div class="results-actions">
+        <button class="btn btn-primary" id="btn-copy" type="button">Copy summary</button>
+        <button class="btn btn-ghost" id="btn-print" type="button">Print / save PDF</button>
+        <span class="copy-flash" id="copy-flash">Copied to clipboard.</span>
+      </div>
+      <p class="save-status pending" id="save-status">Saving your results&hellip;</p>
+
+      <p class="note">Custom internal instrument &mdash; not affiliated with or endorsed by Redfish Investments. For internal hiring-conversation use at Redfish / AeroBarrier only.</p>
+    </section>
+
+  </div>
+</div>
+
+<!-- Firebase (compat SDK — no build step needed) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+(function(){
+  "use strict";
+
+  var firebaseReady = false;
+  var db = null;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseReady = firebaseConfig.apiKey !== "PASTE_API_KEY_HERE";
+  } catch (e) {
+    console.error("Firebase init failed", e);
+  }
+
+  var AXES = {
+    EI: { left:"I", right:"E", leftLabel:"Introversion", rightLabel:"Extraversion",
+          leftDesc:"draws energy from focused, independent work",
+          rightDesc:"draws energy from people and interaction" },
+    SN: { left:"N", right:"S", leftLabel:"Intuition", rightLabel:"Sensing",
+          leftDesc:"focuses on patterns, possibilities, and the bigger picture",
+          rightDesc:"focuses on concrete facts, details, and what has worked before" },
+    TF: { left:"F", right:"T", leftLabel:"Feeling", rightLabel:"Thinking",
+          leftDesc:"weighs decisions by their impact on people",
+          rightDesc:"weighs decisions by logic and consistency" },
+    JP: { left:"P", right:"J", leftLabel:"Perceiving", rightLabel:"Judging",
+          leftDesc:"stays flexible and adapts as things unfold",
+          rightDesc:"prefers plans, structure, and closure" }
+  };
+
+  var RAW_QUESTIONS = {
+    EI: [
+      "I feel energized after spending time actively collaborating with a group.",
+      "I prefer to work through a problem out loud with others rather than think it through alone first.",
+      "In a new job, I look forward to meeting many new coworkers quickly.",
+      "I find it easy to strike up conversation with people I don’t know well.",
+      "I’d rather present findings to a room than write them up privately.",
+      "Busy, high-interaction environments (job sites, front desks, group meetings) suit how I do my best work.",
+      "I often think best while talking a problem through with someone else.",
+      "I recharge by being around other people rather than by having quiet time alone.",
+      "I’m comfortable being the one who speaks up first in a meeting.",
+      "I enjoy networking events and meeting new contacts.",
+      "I’d describe myself as outgoing more often than reserved.",
+      "I like having people around me while I work, even if we’re not directly collaborating.",
+      "After a long day of meetings, I still feel more energized than drained.",
+      "I process my thoughts more easily by talking them through than by writing them down.",
+      "I actively seek out chances to work with new people rather than stick with familiar collaborators."
+    ],
+    SN: [
+      "I trust concrete facts and firsthand experience more than theories or hunches.",
+      "I prefer step-by-step instructions over general guidelines I have to interpret.",
+      "I notice small details — measurements, specs, numbers — that others often miss.",
+      "I’d rather improve something that already works well than invent something new.",
+      "When solving a problem, I focus first on what has worked before in similar situations.",
+      "I’m more comfortable with proven methods than with experimental approaches.",
+      "I like tasks with clear, tangible outcomes I can point to when finished.",
+      "I pay close attention to the practical details of how something is built or done.",
+      "I prefer working from a checklist over working from a broad vision statement.",
+      "I’m more drawn to how things work right now than to where they might be headed.",
+      "I trust data and direct observation over gut feeling.",
+      "I’d rather master a defined set of skills than constantly explore new ideas.",
+      "I focus on the specific task in front of me rather than the bigger picture around it.",
+      "I prefer concrete examples over abstract explanations when learning something new.",
+      "I like routines and established procedures more than open-ended exploration."
+    ],
+    TF: [
+      "When making a decision, logical consequences matter more to me than how people will feel about it.",
+      "I’d rather be seen as fair and consistent than as warm and accommodating.",
+      "I can deliver critical feedback without much discomfort if it’s accurate and useful.",
+      "I evaluate ideas mainly on whether they’re correct, not on whose feelings might be affected.",
+      "In disagreements, I focus on getting to the right answer more than keeping the peace.",
+      "I make decisions by weighing pros, cons, and objective criteria rather than instinct about people.",
+      "I’d rather enforce a rule consistently than make an exception for someone’s circumstances.",
+      "Efficiency and results usually take priority for me over group harmony.",
+      "I trust reasoned arguments more than appeals to values or emotions.",
+      "I don’t mind conflict if it means solving the real problem.",
+      "I judge my own work primarily by whether it’s correct, not by how it’s received.",
+      "I find it easy to separate a business decision from my personal feelings about the people involved.",
+      "I prefer clear, objective standards for performance over subjective judgment calls.",
+      "When a coworker makes a mistake, I focus on fixing the process more than managing their feelings about it.",
+      "I’d rather be right than well-liked in a disagreement about how to do the work."
+    ],
+    JP: [
+      "I like having a clear plan and schedule rather than figuring things out as I go.",
+      "I feel uneasy leaving tasks unfinished, even temporarily.",
+      "I prefer to finalize decisions early rather than keep my options open.",
+      "I keep a tidy, organized workspace and task list.",
+      "I work best with firm deadlines rather than open-ended timelines.",
+      "I like to plan my day in advance rather than let it unfold naturally.",
+      "Once I commit to an approach, I prefer to stick with it rather than change course midway.",
+      "I feel more comfortable with structure and routine than with spontaneity.",
+      "I finish tasks well ahead of the deadline rather than close to it.",
+      "I prefer clear rules and procedures over open-ended flexibility.",
+      "I like to have things decided and settled rather than kept open.",
+      "I make to-do lists and follow them closely.",
+      "Unplanned changes to my schedule bother me more than they excite me.",
+      "I’d rather follow a proven process than improvise a new one on the spot.",
+      "I like closing out one task completely before starting the next."
+    ]
+  };
+
+  var TYPE_DESCRIPTIONS = {
+    ISTJ:"Methodical and dependable. Works best with clear procedures, verifies details, and follows through on commitments without needing to be checked on.",
+    ISFJ:"Steady and attentive to people’s needs. Keeps things running smoothly behind the scenes and takes obligations seriously.",
+    INFJ:"Works from a clear sense of purpose. Thinks ahead about how decisions affect people and prefers depth over breadth in projects.",
+    INTJ:"Independent, strategic thinker. Prefers to work out a plan thoroughly before acting, and holds a high bar for both self and others.",
+    ISTP:"Practical problem-solver who learns by doing. Stays calm under pressure and prefers hands-on troubleshooting to theory.",
+    ISFP:"Quietly observant and hands-on. Prefers to work at their own pace on tasks they care about, adapting as new information comes in.",
+    INFP:"Guided by personal values and a longer-term vision. Prefers meaningful, self-directed work over rigid routine.",
+    INTP:"Analytical and curious. Enjoys digging into how systems work and prefers to think a problem through fully before committing to an answer.",
+    ESTP:"Energetic and action-oriented. Reads a situation quickly and prefers to solve problems on the spot rather than plan them out in advance.",
+    ESFP:"Sociable and adaptable. Brings energy to a team and prefers active, hands-on work over long planning sessions.",
+    ENFP:"Enthusiastic and idea-driven. Connects well with people, and brings energy to new initiatives and creative problem-solving.",
+    ENTP:"Quick, inventive thinker. Enjoys debating ideas and finding new approaches, sometimes at the expense of following a fixed process.",
+    ESTJ:"Organized and results-focused. Takes charge of getting things done on schedule and expects the same follow-through from others.",
+    ESFJ:"Warm and organized, attentive to team morale. Keeps people and logistics coordinated and follows through reliably.",
+    ENFJ:"Motivating and people-focused. Naturally organizes others around a shared goal and communicates with warmth.",
+    ENTJ:"Decisive and goal-driven. Takes charge of ambiguous situations, sets a direction, and drives a team toward results."
+  };
+
+  var deck = [];
+  Object.keys(RAW_QUESTIONS).forEach(function(axis){
+    RAW_QUESTIONS[axis].forEach(function(text){ deck.push({axis:axis, text:text}); });
+  });
+  for (var i = deck.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+  }
+  var TOTAL = deck.length;
+  var answers = new Array(TOTAL).fill(null);
+  var current = 0;
+  var candidateName = "", candidateRole = "", candidateEmail = "";
+
+  var screenIntro = document.getElementById("screen-intro");
+  var screenQuiz = document.getElementById("screen-quiz");
+  var screenResults = document.getElementById("screen-results");
+
+  var inName = document.getElementById("in-name");
+  var inRole = document.getElementById("in-role");
+  var inEmail = document.getElementById("in-email");
+  var nameErr = document.getElementById("name-err");
+  var emailErr = document.getElementById("email-err");
+
+  function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  var qCounter = document.getElementById("q-counter");
+  var qName = document.getElementById("q-name");
+  var progressFill = document.getElementById("progress-fill");
+  var qText = document.getElementById("q-text");
+  var btnBack = document.getElementById("btn-back");
+  var btnNext = document.getElementById("btn-next");
+  var radios = Array.prototype.slice.call(document.querySelectorAll('input[name="likert"]'));
+
+  document.getElementById("btn-start").addEventListener("click", function(){
+    var name = inName.value.trim();
+    var email = inEmail.value.trim();
+    var valid = true;
+
+    if (!name) {
+      nameErr.classList.add("show");
+      valid = false;
+    } else {
+      nameErr.classList.remove("show");
+    }
+
+    if (!email || !isValidEmail(email)) {
+      emailErr.textContent = !email ? "Enter an email address before starting." : "Enter a valid email address.";
+      emailErr.classList.add("show");
+      valid = false;
+    } else {
+      emailErr.classList.remove("show");
+    }
+
+    if (!valid) {
+      (!name ? inName : inEmail).focus();
+      return;
+    }
+
+    candidateName = name;
+    candidateRole = inRole.value.trim();
+    candidateEmail = email;
+    screenIntro.hidden = true;
+    screenQuiz.hidden = false;
+    qName.textContent = candidateName.toUpperCase();
+    renderQuestion(0);
+  });
+  inName.addEventListener("input", function(){ if (inName.value.trim()) nameErr.classList.remove("show"); });
+  inEmail.addEventListener("input", function(){ if (isValidEmail(inEmail.value.trim())) emailErr.classList.remove("show"); });
+
+  function renderQuestion(idx){
+    current = idx;
+    var item = deck[idx];
+    qText.textContent = item.text;
+    qCounter.textContent = "QUESTION " + (idx + 1) + " / " + TOTAL;
+    progressFill.style.width = ((idx) / TOTAL * 100) + "%";
+    btnBack.disabled = idx === 0;
+    var stored = answers[idx];
+    radios.forEach(function(r){ r.checked = (stored !== null && parseInt(r.value,10) === stored); });
+    btnNext.disabled = stored === null;
+    btnNext.textContent = idx === TOTAL - 1 ? "See results →" : "Next →";
+  }
+
+  radios.forEach(function(r){
+    r.addEventListener("change", function(){
+      answers[current] = parseInt(r.value, 10);
+      btnNext.disabled = false;
+    });
+  });
+
+  btnBack.addEventListener("click", function(){
+    if (current > 0) renderQuestion(current - 1);
+  });
+  btnNext.addEventListener("click", advance);
+
+  function advance(){
+    if (answers[current] === null) return;
+    if (current < TOTAL - 1) {
+      renderQuestion(current + 1);
+    } else {
+      progressFill.style.width = "100%";
+      showResults();
+    }
+  }
+
+  document.addEventListener("keydown", function(e){
+    if (screenQuiz.hidden) return;
+    if (e.key >= "1" && e.key <= "5") {
+      var r = document.getElementById("opt" + e.key);
+      if (r) { r.checked = true; r.dispatchEvent(new Event("change")); }
+    } else if (e.key === "Enter") {
+      if (!btnNext.disabled) advance();
+    } else if (e.key === "ArrowLeft") {
+      if (!btnBack.disabled) renderQuestion(current - 1);
+    }
+  });
+
+  function showResults(){
+    screenQuiz.hidden = true;
+    screenResults.hidden = false;
+
+    var sums = { EI:0, SN:0, TF:0, JP:0 };
+    deck.forEach(function(item, idx){ sums[item.axis] += answers[idx]; });
+
+    var code = "";
+    var axisResults = [];
+    var axisPercents = {};
+    ["EI","SN","TF","JP"].forEach(function(axis){
+      var ax = AXES[axis];
+      var pct = Math.round((sums[axis] - 15) / 60 * 100);
+      pct = Math.max(0, Math.min(100, pct));
+      var letter = pct >= 50 ? ax.right : ax.left;
+      code += letter;
+      axisPercents[axis] = pct;
+      axisResults.push({ axis:axis, ax:ax, pct:pct, letter:letter });
+    });
+
+    document.getElementById("res-name").textContent = candidateName;
+    var roleWrap = document.getElementById("res-role-wrap");
+    if (candidateRole) {
+      document.getElementById("res-role").textContent = candidateRole;
+      roleWrap.style.display = "";
+    } else {
+      roleWrap.style.display = "none";
+    }
+    var nowIso = new Date().toISOString();
+    document.getElementById("res-date").textContent = new Date().toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
+    document.getElementById("res-code").textContent = code;
+    document.getElementById("res-tagline").textContent =
+      axisResults.map(function(r){ return (r.letter === r.ax.right ? r.ax.rightLabel : r.ax.leftLabel); }).join(" · ");
+    document.getElementById("res-desc").textContent = TYPE_DESCRIPTIONS[code] || "";
+
+    var metersEl = document.getElementById("res-meters");
+    metersEl.innerHTML = "";
+    axisResults.forEach(function(r){
+      var winPct = r.pct >= 50 ? r.pct : 100 - r.pct;
+      var winLabel = r.pct >= 50 ? r.ax.rightLabel : r.ax.leftLabel;
+      var winDesc = r.pct >= 50 ? r.ax.rightDesc : r.ax.leftDesc;
+      var row = document.createElement("div");
+      row.className = "meter-row";
+      row.innerHTML =
+        '<div class="meter-labels">' +
+          '<span class="' + (r.pct < 50 ? "active" : "") + '">' + r.ax.leftLabel + ' (' + r.ax.left + ')</span>' +
+          '<span class="' + (r.pct >= 50 ? "active" : "") + '">' + r.ax.rightLabel + ' (' + r.ax.right + ')</span>' +
+        '</div>' +
+        '<div class="meter-track">' +
+          '<div class="meter-fill" style="width:' + r.pct + '%"></div>' +
+          '<div class="meter-ticks"><span></span><span></span><span></span><span></span><span></span></div>' +
+          '<div class="meter-marker" style="left:' + r.pct + '%"></div>' +
+        '</div>' +
+        '<div class="meter-foot"><span>' + winLabel + ' — ' + winDesc + '</span><span class="pct mono">' + winPct + '%</span></div>';
+      metersEl.appendChild(row);
+    });
+
+    document.getElementById("btn-print").addEventListener("click", function(){ window.print(); });
+    document.getElementById("btn-copy").addEventListener("click", function(){
+      var lines = [
+        "Type Preferences Index — Redfish / AeroBarrier",
+        "Candidate: " + candidateName + (candidateRole ? " (" + candidateRole + ")" : ""),
+        "Date: " + document.getElementById("res-date").textContent,
+        "Result: " + code,
+        ""
+      ];
+      axisResults.forEach(function(r){
+        var winPct = r.pct >= 50 ? r.pct : 100 - r.pct;
+        var winLabel = r.pct >= 50 ? r.ax.rightLabel : r.ax.leftLabel;
+        lines.push(r.ax.leftLabel + " / " + r.ax.rightLabel + ": " + winLabel + " " + winPct + "%");
+      });
+      lines.push("");
+      lines.push(TYPE_DESCRIPTIONS[code] || "");
+      var text = lines.join("\n");
+      var flash = document.getElementById("copy-flash");
+      function showFlash(){ flash.classList.add("show"); setTimeout(function(){ flash.classList.remove("show"); }, 2200); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(showFlash).catch(function(){ fallbackCopy(text, showFlash); });
+      } else {
+        fallbackCopy(text, showFlash);
+      }
+    });
+
+    saveSubmission({
+      name: candidateName,
+      role: candidateRole || null,
+      email: candidateEmail || null,
+      code: code,
+      axisPercents: axisPercents,
+      answers: deck.map(function(item, idx){ return { axis:item.axis, text:item.text, value:answers[idx] }; }),
+      submittedAt: nowIso
+    });
+  }
+
+  function fallbackCopy(text, cb){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand("copy"); cb(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+
+  function saveSubmission(record){
+    var statusEl = document.getElementById("save-status");
+    if (!firebaseReady || !db) {
+      statusEl.textContent = "Not saved — this page isn't connected to a database yet.";
+      statusEl.className = "save-status err";
+      return;
+    }
+    db.collection("submissions").add(Object.assign({}, record, {
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })).then(function(){
+      statusEl.textContent = "Saved.";
+      statusEl.className = "save-status ok";
+    }).catch(function(err){
+      console.error("Save failed", err);
+      statusEl.textContent = "Something went wrong saving your results. Please let the hiring team know.";
+      statusEl.className = "save-status err";
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
