@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Type Preferences Index Results</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F4F6F5; --surface:#FFFFFF; --ink:#16232A; --ink-secondary:#4B5F68; --ink-muted:#7E8F96;
+    --line:#D8E0E0; --line-strong:#B9C6C6; --accent:#1C5F7A; --accent-ink:#FFFFFF; --accent-soft:#DCEBEF;
+    --danger:#A6402C; --shadow:0 1px 2px rgba(22,35,42,.06), 0 8px 24px rgba(22,35,42,.06);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:"Source Sans 3",system-ui,sans-serif; padding:24px 16px; }
+  .mono{ font-family:"IBM Plex Mono",ui-monospace,monospace; }
+  .wrap{ max-width:1000px; margin:0 auto; }
+  h1{ font-size:24px; margin:0 0 4px; }
+  .header-logo{ height:36px; width:auto; display:block; margin-bottom:14px; }
+  .topbar-logo{ margin-bottom:8px; }
+  .sub{ color:var(--ink-secondary); font-size:14px; margin-bottom:24px; }
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); padding:28px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-secondary); margin-bottom:6px; }
+  .field input{ width:100%; font-size:15px; padding:10px 12px; border:1px solid var(--line-strong); border-radius:4px; font-family:inherit; }
+  .btn{ display:inline-flex; align-items:center; gap:8px; font-size:14.5px; font-weight:600; border-radius:4px; padding:10px 18px; border:1px solid transparent; cursor:pointer; }
+  .btn-primary{ background:var(--accent); color:var(--accent-ink); }
+  .btn-ghost{ background:transparent; color:var(--ink-secondary); border-color:var(--line-strong); }
+  .err{ color:var(--danger); font-size:13.5px; margin-top:10px; display:none; }
+  .err.show{ display:block; }
+  .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th, td{ text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th{ font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-secondary); }
+  tr:hover td{ background:var(--accent-soft); cursor:pointer; }
+  .code-badge{ font-family:"IBM Plex Mono",monospace; font-weight:700; color:var(--accent); }
+  .empty{ color:var(--ink-muted); padding:30px 0; text-align:center; }
+  .modal-backdrop{ position:fixed; inset:0; background:rgba(16,23,26,.5); display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow:auto; }
+  .modal{ background:var(--surface); border-radius:6px; max-width:640px; width:100%; padding:28px; max-height:calc(100vh - 80px); overflow:auto; }
+  .answers-heading{ font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-secondary); margin:24px 0 10px; border-top:1px solid var(--line); padding-top:18px; }
+  .answers-list{ list-style:decimal; padding-left:20px; margin:0; font-size:13.5px; }
+  .answers-list li{ padding:8px 0; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:16px; }
+  .answers-q{ color:var(--ink); flex:1; }
+  .answers-a{ color:var(--accent); font-weight:600; white-space:nowrap; }
+  .read-block{ margin-top:8px; }
+  .read-disclaimer{ font-size:12.5px; color:var(--ink-muted); font-style:italic; margin:4px 0 16px; line-height:1.5; }
+  .read-label{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-secondary); margin:14px 0 6px; }
+  .read-list{ margin:0; padding-left:20px; font-size:14px; line-height:1.6; }
+  .read-list li{ margin-bottom:4px; }
+  .ai-read-text{ font-size:14px; line-height:1.65; color:var(--ink); }
+  .ai-read-text p{ margin:0 0 12px; }
+  .ai-read-loading{ font-size:13.5px; color:var(--ink-muted); font-style:italic; }
+  .ai-read-error{ font-size:13.5px; color:var(--danger); margin-bottom:10px; }
+  .modal h2{ margin-top:0; }
+  .modal .close{ float:right; background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink-muted); }
+  .meter-row{ margin-bottom:14px; }
+  .meter-labels{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-secondary); margin-bottom:6px; }
+  .meter-track{ height:8px; background:var(--line); border-radius:4px; position:relative; }
+  .meter-fill{ position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:4px; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section id="screen-login">
+    <img src="redfish-logo.png" alt="Redfish Investments" class="header-logo">
+    <h1>Assessment Results</h1>
+    <p class="sub">Sign in with your admin account to view submitted assessments.</p>
+    <div class="card" style="max-width:380px;">
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <input type="password" id="login-pass" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" id="btn-login">Sign in</button>
+      <div class="err" id="login-err"></div>
+    </div>
+  </section>
+
+  <section id="screen-dash" hidden>
+    <div class="topbar">
+      <div>
+        <img src="redfish-logo.png" alt="Redfish Investments" class="header-logo topbar-logo">
+        <h1>Assessment Results</h1>
+        <p class="sub mono" id="signed-in-as"></p>
+      </div>
+      <div>
+        <button class="btn btn-ghost" id="btn-refresh">Refresh</button>
+        <button class="btn btn-ghost" id="btn-export">Export CSV</button>
+        <button class="btn btn-ghost" id="btn-logout">Sign out</button>
+      </div>
+    </div>
+    <div class="card">
+      <table id="results-table">
+        <thead>
+          <tr><th>Date</th><th>Candidate</th><th>Role</th><th>Type</th></tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+      <div class="empty" id="results-empty" hidden>No submissions yet.</div>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal-backdrop" id="modal" hidden>
+  <div class="modal">
+    <button class="close" id="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  if (firebaseConfig.apiKey === "PASTE_API_KEY_HERE") {
+    document.getElementById("login-err").textContent = "This page isn't connected to Firebase yet — fill in firebase-config.js.";
+    document.getElementById("login-err").classList.add("show");
+  }
+  firebase.initializeApp(firebaseConfig);
+  var auth = firebase.auth();
+  var db = firebase.firestore();
+
+  // Free-tier Gemini API key — used only to generate a personalized, in-browser
+  // read of each candidate's answers. Visible in page source (this is a static
+  // site with no server to hide it behind); fine for a free-tier key with no
+  // billing attached.
+  var GEMINI_API_KEY = "AQ.Ab8RN6IoUlS4eIEDtqSwv6Tdu1SGqAEzSPKVkWrDyWLBXxyYPg";
+  var GEMINI_MODEL = "gemini-3.5-flash";
+  var aiReadCache = {};
+
+  var screenLogin = document.getElementById("screen-login");
+  var screenDash = document.getElementById("screen-dash");
+  var loginErr = document.getElementById("login-err");
+  var submissions = [];
+
+  document.getElementById("btn-login").addEventListener("click", function(){
+    var email = document.getElementById("login-email").value.trim();
+    var pass = document.getElementById("login-pass").value;
+    loginErr.classList.remove("show");
+    auth.signInWithEmailAndPassword(email, pass).catch(function(err){
+      loginErr.textContent = err.message;
+      loginErr.classList.add("show");
+    });
+  });
+
+  document.getElementById("btn-logout").addEventListener("click", function(){
+    auth.signOut();
+  });
+
+  auth.onAuthStateChanged(function(user){
+    if (user) {
+      screenLogin.hidden = true;
+      screenDash.hidden = false;
+      document.getElementById("signed-in-as").textContent = "Signed in as " + user.email;
+      loadSubmissions();
+    } else {
+      screenLogin.hidden = false;
+      screenDash.hidden = true;
+    }
+  });
+
+  function loadSubmissions(){
+    db.collection("submissions").orderBy("createdAt", "desc").get().then(function(snap){
+      submissions = [];
+      snap.forEach(function(doc){ submissions.push(Object.assign({ id: doc.id }, doc.data())); });
+      renderTable();
+    }).catch(function(err){
+      console.error(err);
+      alert("Couldn't load results: " + err.message);
+    });
+  }
+
+  document.getElementById("btn-refresh").addEventListener("click", loadSubmissions);
+
+  function renderTable(){
+    var body = document.getElementById("results-body");
+    var empty = document.getElementById("results-empty");
+    body.innerHTML = "";
+    if (!submissions.length) { empty.hidden = false; return; }
+    empty.hidden = true;
+    submissions.forEach(function(s, idx){
+      var tr = document.createElement("tr");
+      var date = s.createdAt && s.createdAt.toDate ? s.createdAt.toDate() : (s.submittedAt ? new Date(s.submittedAt) : null);
+      tr.innerHTML =
+        "<td>" + (date ? date.toLocaleDateString() : "—") + "</td>" +
+        "<td>" + escapeHtml(s.name || "") + "</td>" +
+        "<td>" + escapeHtml(s.role || "—") + "</td>" +
+        "<td class='code-badge'>" + escapeHtml(s.code || "") + "</td>";
+      tr.addEventListener("click", function(){ openModal(idx); });
+      body.appendChild(tr);
+    });
+  }
+
+  var TYPE_READS = {
+    ISTJ:{ strengths:["Follows through on commitments without needing to be checked on","Verifies details and catches errors others miss","Comfortable with repetitive, procedure-driven work"],
+           watchouts:["May resist changes to an established process without a clear reason","Can come across as rigid when priorities shift suddenly"],
+           questions:["Tell me about a time a process you relied on changed suddenly — how did you adapt?","How do you handle a supervisor asking you to skip a step to save time?"] },
+    ISFJ:{ strengths:["Reliable behind-the-scenes support; keeps commitments quietly","Attentive to coworkers' and customers' practical needs","Steady under routine pressure"],
+           watchouts:["May avoid raising conflict even when something is going wrong","Can over-commit trying to accommodate everyone"],
+           questions:["Describe a time you disagreed with a coworker's approach — what did you do?","How do you decide when to speak up versus let something go?"] },
+    INFJ:{ strengths:["Thinks ahead about how a decision will land with the team","Prefers to do fewer things well rather than many things superficially","Brings a clear sense of purpose to their work"],
+           watchouts:["May need convincing that a task matters before fully engaging","Can be slow to open up about problems until they're significant"],
+           questions:["What kind of work makes you feel like it actually matters?","Tell me about a project you had to do even though you didn't see the point."] },
+    INTJ:{ strengths:["Thinks through a plan thoroughly before acting","Holds a high bar for their own and others' work","Comfortable working independently on ambiguous problems"],
+           watchouts:["May be impatient with process for its own sake","Can seem distant or overly critical in group settings"],
+           questions:["Tell me about a time you had to execute someone else's plan you disagreed with.","How do you give feedback to a coworker who's underperforming?"] },
+    ISTP:{ strengths:["Learns by doing; comfortable troubleshooting hands-on problems","Stays calm under pressure","Practical, low-drama approach to fixing things"],
+           watchouts:["May disengage from long meetings or heavy documentation","Prefers to solve it themselves rather than ask early for help"],
+           questions:["Walk me through how you'd approach a piece of equipment you've never seen fail before.","When do you decide to ask for help versus keep troubleshooting alone?"] },
+    ISFP:{ strengths:["Adapts well as new information comes in","Works at a steady pace on tasks they care about","Quietly observant — often notices what others miss"],
+           watchouts:["May prefer to avoid confrontation about workload or priorities","Motivation can dip on tasks that feel disconnected from their interests"],
+           questions:["Tell me about a task you had to push through even though it didn't interest you.","How do you let a manager know you're overloaded?"] },
+    INFP:{ strengths:["Guided by clear personal values — consistent and principled","Prefers meaningful, self-directed work","Thoughtful about the human impact of decisions"],
+           watchouts:["May struggle with rigid routine or heavy oversight","Can take feedback personally if not delivered carefully"],
+           questions:["Describe a work environment where you didn't do your best work — why?","How do you like to receive critical feedback?"] },
+    INTP:{ strengths:["Digs into how systems actually work before committing to an answer","Enjoys solving genuinely hard, novel problems","Comfortable holding ambiguity while thinking something through"],
+           watchouts:["May under-communicate progress on long-running problems","Can lose interest once the interesting part of a problem is solved"],
+           questions:["Tell me about a problem you kept working at even after most people would've stopped.","How do you keep a team updated on a project that's taking longer than expected?"] },
+    ESTP:{ strengths:["Reads a situation quickly and reacts in real time","Comfortable improvising rather than following a rigid plan","Brings energy to hands-on, fast-moving environments"],
+           watchouts:["May skip planning steps in favor of jumping straight into action","Can lose interest in slow-moving or highly repetitive work"],
+           questions:["Tell me about a time acting quickly worked out well — and a time it didn't.","How do you handle a task that requires a lot of upfront planning?"] },
+    ESFP:{ strengths:["Brings energy and adaptability to a team","Comfortable in active, people-facing, hands-on roles","Reads the room and adjusts quickly"],
+           watchouts:["May find heavy solo planning or paperwork draining","Can prioritize the immediate over the long-term plan"],
+           questions:["Describe a job or task that felt like a poor fit for your energy — why?","How do you stay on top of paperwork or admin work you find tedious?"] },
+    ENFP:{ strengths:["Enthusiastic about new initiatives and ideas","Connects well with a wide range of people","Brings creative problem-solving to routine challenges"],
+           watchouts:["May lose steam on the follow-through after the initial idea phase","Can take on too many things at once"],
+           questions:["Tell me about an idea you had that you saw all the way through to completion.","How do you prioritize when everything feels exciting?"] },
+    ENTP:{ strengths:["Quick to generate new approaches to a stuck problem","Enjoys debating ideas to stress-test a decision","Adapts fast when circumstances change"],
+           watchouts:["May push back on established process without weighing the cost of change","Can move on before finishing the less interesting parts of a project"],
+           questions:["Tell me about a rule or process you thought was wrong — what did you do about it?","How do you make sure the boring parts of a project actually get done?"] },
+    ESTJ:{ strengths:["Organizes people and tasks to hit a deadline","Expects and models follow-through","Comfortable taking charge of an unclear situation"],
+           watchouts:["May be blunt when enforcing standards","Can be inflexible about doing things 'the right way'"],
+           questions:["Tell me about a time your way of doing something wasn't the best way — how did you find out, and what did you do?","How do you handle a team member who consistently misses deadlines?"] },
+    ESFJ:{ strengths:["Keeps people and logistics coordinated","Attentive to team morale and follow-through","Dependable in structured, people-facing roles"],
+           watchouts:["May prioritize keeping the peace over raising a hard issue","Can take criticism of the team personally"],
+           questions:["Tell me about a time you had to deliver unwelcome news to the team.","How do you balance being liked with holding people accountable?"] },
+    ENFJ:{ strengths:["Naturally organizes others around a shared goal","Communicates with warmth; good at motivating a team","Attuned to how decisions affect people"],
+           watchouts:["May over-invest emotionally in the team's problems","Can struggle to make an unpopular but necessary call"],
+           questions:["Tell me about a decision you had to make that you knew wouldn't be popular.","How do you handle a team member who isn't responding to encouragement?"] },
+    ENTJ:{ strengths:["Decisive in ambiguous or high-pressure situations","Sets direction and drives a team toward results","Comfortable taking ownership of a messy problem"],
+           watchouts:["May move faster than the team is ready for","Can come across as blunt or overly direct with feedback"],
+           questions:["Tell me about a time you had to slow down to bring the team along with a decision.","How do you adjust your communication style for someone who needs more support?"] }
+  };
+
+  function openModal(idx){
+    var s = submissions[idx];
+    var modal = document.getElementById("modal");
+    var body = document.getElementById("modal-body");
+    var axisLabels = {
+      EI:["Introversion","Extraversion"], SN:["Intuition","Sensing"],
+      TF:["Feeling","Thinking"], JP:["Perceiving","Judging"]
+    };
+    var meters = "";
+    if (s.axisPercents) {
+      Object.keys(s.axisPercents).forEach(function(axis){
+        var pct = s.axisPercents[axis];
+        var labels = axisLabels[axis] || [axis, axis];
+        meters += '<div class="meter-row"><div class="meter-labels"><span>' + labels[0] + '</span><span>' + labels[1] + '</span></div>' +
+          '<div class="meter-track"><div class="meter-fill" style="width:' + pct + '%"></div></div></div>';
+      });
+    }
+    var read = "";
+    var typeRead = TYPE_READS[s.code];
+    if (typeRead) {
+      read += "<div class='read-block'>";
+      read += "<h3 class='answers-heading'>Working-style read</h3>";
+      read += "<p class='read-disclaimer'>A reference for the interview, not a score — this is based on an informal type instrument, not a validated predictor of job performance. Don't screen anyone out on this alone.</p>";
+      read += "<p class='read-label'>Likely strengths</p><ul class='read-list'>" +
+        typeRead.strengths.map(function(x){ return "<li>" + escapeHtml(x) + "</li>"; }).join("") + "</ul>";
+      read += "<p class='read-label'>Worth watching for</p><ul class='read-list'>" +
+        typeRead.watchouts.map(function(x){ return "<li>" + escapeHtml(x) + "</li>"; }).join("") + "</ul>";
+      read += "<p class='read-label'>Interview questions to probe further</p><ul class='read-list'>" +
+        typeRead.questions.map(function(x){ return "<li>" + escapeHtml(x) + "</li>"; }).join("") + "</ul>";
+      read += "</div>";
+    }
+    var answersList = "";
+    if (Array.isArray(s.answers) && s.answers.length) {
+      var scaleLabel = { 1:"Strongly disagree", 2:"Disagree", 3:"Neutral", 4:"Agree", 5:"Strongly agree" };
+      answersList += "<h3 class='answers-heading'>All 60 responses</h3><ol class='answers-list'>";
+      s.answers.forEach(function(a){
+        answersList += "<li><span class='answers-q'>" + escapeHtml(a.text) + "</span>" +
+          "<span class='answers-a'>" + (scaleLabel[a.value] || a.value) + "</span></li>";
+      });
+      answersList += "</ol>";
+    }
+    var aiBlock =
+      "<div class='read-block' id='ai-read-block'>" +
+        "<h3 class='answers-heading'>Personalized AI read</h3>" +
+        "<div id='ai-read-content'>" +
+          (aiReadCache[s.id]
+            ? "<div class='ai-read-text'>" + aiReadCache[s.id] + "</div>"
+            : "<button class='btn btn-ghost' id='btn-ai-read'>Generate personalized read (AI)</button>") +
+        "</div>" +
+      "</div>";
+    body.innerHTML =
+      "<h2>" + escapeHtml(s.name || "") + " — <span class='code-badge'>" + escapeHtml(s.code || "") + "</span></h2>" +
+      "<p class='sub'>" + (s.role ? "Role: " + escapeHtml(s.role) + " &middot; " : "") + (s.email ? escapeHtml(s.email) : "") + "</p>" +
+      meters + read + aiBlock + answersList;
+    modal.hidden = false;
+
+    var aiBtn = document.getElementById("btn-ai-read");
+    if (aiBtn) {
+      aiBtn.addEventListener("click", function(){ generateAIRead(s); });
+    }
+  }
+
+  function generateAIRead(s){
+    var container = document.getElementById("ai-read-content");
+    container.innerHTML = "<p class='ai-read-loading'>Generating&hellip; this can take a few seconds.</p>";
+
+    var answersSummary = (s.answers || []).map(function(a){
+      return "- (" + a.axis + ") \"" + a.text + "\" → " + a.value + "/5";
+    }).join("\n");
+
+    var prompt =
+      "You are helping a hiring manager at a small company (Redfish / AeroBarrier) think through a job candidate's " +
+      "work-style assessment. This is an informal internal instrument, not a validated psychometric test. " +
+      "Do NOT give a numeric score, percentage, pass/fail verdict, or hiring recommendation of any kind — " +
+      "this must remain a qualitative conversation aid only, never a basis to screen someone out.\n\n" +
+      "Candidate: " + (s.name || "unknown") + "\n" +
+      "Applying for: " + (s.role || "not specified") + "\n" +
+      "Resulting 4-letter type: " + (s.code || "unknown") + "\n" +
+      "Axis percentages (0-100, higher = further right-hand trait): " + JSON.stringify(s.axisPercents || {}) + "\n\n" +
+      "Their 60 individual answers (statement, and how much they agreed 1-5):\n" + answersSummary + "\n\n" +
+      "Write a short, specific, plain-language read of this person's likely work style for the hiring manager, " +
+      "grounded in the actual answer patterns above (not just the 4-letter label). Structure it as:\n" +
+      "1. A 2-3 sentence summary of their apparent work style.\n" +
+      "2. 3 specific strengths relevant to the role they applied for, referencing patterns in their actual answers.\n" +
+      "3. 2-3 things worth probing further in an interview, phrased neutrally (not as weaknesses/red flags).\n" +
+      "4. 3 tailored interview questions that would help verify or challenge this read, specific to the role.\n" +
+      "Keep it concise — a few sentences per section. Plain text, no markdown headers or asterisks.";
+
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent";
+
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    })
+      .then(function(res){ return res.json().then(function(data){ return { ok: res.ok, data: data }; }); })
+      .then(function(result){
+        if (!result.ok) {
+          throw new Error((result.data && result.data.error && result.data.error.message) || "Request failed");
+        }
+        var text = result.data.candidates && result.data.candidates[0] && result.data.candidates[0].content &&
+          result.data.candidates[0].content.parts && result.data.candidates[0].content.parts[0] &&
+          result.data.candidates[0].content.parts[0].text;
+        if (!text) throw new Error("No response text returned.");
+        var html = escapeHtml(text).replace(/\n\n+/g, "</p><p>").replace(/\n/g, "<br>");
+        aiReadCache[s.id] = "<p>" + html + "</p>";
+        container.innerHTML = "<div class='ai-read-text'>" + aiReadCache[s.id] + "</div>";
+      })
+      .catch(function(err){
+        console.error(err);
+        container.innerHTML =
+          "<p class='ai-read-error'>Couldn't generate a read: " + escapeHtml(err.message) + "</p>" +
+          "<button class='btn btn-ghost' id='btn-ai-read-retry'>Try again</button>";
+        var retryBtn = document.getElementById("btn-ai-read-retry");
+        if (retryBtn) retryBtn.addEventListener("click", function(){ generateAIRead(s); });
+      });
+  }
+  document.getElementById("modal-close").addEventListener("click", function(){
+    document.getElementById("modal").hidden = true;
+  });
+  document.getElementById("modal").addEventListener("click", function(e){
+    if (e.target.id === "modal") document.getElementById("modal").hidden = true;
+  });
+
+  document.getElementById("btn-export").addEventListener("click", function(){
+    if (!submissions.length) return;
+    var cols = ["name","email","role","code","submittedAt"];
+    var rows = [cols.join(",")];
+    submissions.forEach(function(s){
+      rows.push(cols.map(function(c){
+        var v = s[c] == null ? "" : String(s[c]);
+        return '"' + v.replace(/"/g, '""') + '"';
+      }).join(","));
+    });
+    var blob = new Blob([rows.join("\n")], { type: "text/csv" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "tpi-results.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+})();
+</script>
+</body>
+</html>
