@@ -47,6 +47,10 @@
   .read-label{ font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-secondary); margin:14px 0 6px; }
   .read-list{ margin:0; padding-left:20px; font-size:14px; line-height:1.6; }
   .read-list li{ margin-bottom:4px; }
+  .ai-read-text{ font-size:14px; line-height:1.65; color:var(--ink); }
+  .ai-read-text p{ margin:0 0 12px; }
+  .ai-read-loading{ font-size:13.5px; color:var(--ink-muted); font-style:italic; }
+  .ai-read-error{ font-size:13.5px; color:var(--danger); margin-bottom:10px; }
   .modal h2{ margin-top:0; }
   .modal .close{ float:right; background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink-muted); }
   .meter-row{ margin-bottom:14px; }
@@ -125,6 +129,14 @@
   firebase.initializeApp(firebaseConfig);
   var auth = firebase.auth();
   var db = firebase.firestore();
+
+  // Free-tier Gemini API key — used only to generate a personalized, in-browser
+  // read of each candidate's answers. Visible in page source (this is a static
+  // site with no server to hide it behind); fine for a free-tier key with no
+  // billing attached.
+  var GEMINI_API_KEY = "AQ.Ab8RN6IoUlS4eIEDtqSwv6Tdu1SGqAEzSPKVkWrDyWLBXxyYPg";
+  var GEMINI_MODEL = "gemini-3.5-flash";
+  var aiReadCache = {};
 
   var screenLogin = document.getElementById("screen-login");
   var screenDash = document.getElementById("screen-dash");
@@ -281,11 +293,81 @@
       });
       answersList += "</ol>";
     }
+    var aiBlock =
+      "<div class='read-block' id='ai-read-block'>" +
+        "<h3 class='answers-heading'>Personalized AI read</h3>" +
+        "<div id='ai-read-content'>" +
+          (aiReadCache[s.id]
+            ? "<div class='ai-read-text'>" + aiReadCache[s.id] + "</div>"
+            : "<button class='btn btn-ghost' id='btn-ai-read'>Generate personalized read (AI)</button>") +
+        "</div>" +
+      "</div>";
     body.innerHTML =
       "<h2>" + escapeHtml(s.name || "") + " — <span class='code-badge'>" + escapeHtml(s.code || "") + "</span></h2>" +
       "<p class='sub'>" + (s.role ? "Role: " + escapeHtml(s.role) + " &middot; " : "") + (s.email ? escapeHtml(s.email) : "") + "</p>" +
-      meters + read + answersList;
+      meters + read + aiBlock + answersList;
     modal.hidden = false;
+
+    var aiBtn = document.getElementById("btn-ai-read");
+    if (aiBtn) {
+      aiBtn.addEventListener("click", function(){ generateAIRead(s); });
+    }
+  }
+
+  function generateAIRead(s){
+    var container = document.getElementById("ai-read-content");
+    container.innerHTML = "<p class='ai-read-loading'>Generating&hellip; this can take a few seconds.</p>";
+
+    var answersSummary = (s.answers || []).map(function(a){
+      return "- (" + a.axis + ") \"" + a.text + "\" → " + a.value + "/5";
+    }).join("\n");
+
+    var prompt =
+      "You are helping a hiring manager at a small company (Redfish / AeroBarrier) think through a job candidate's " +
+      "work-style assessment. This is an informal internal instrument, not a validated psychometric test. " +
+      "Do NOT give a numeric score, percentage, pass/fail verdict, or hiring recommendation of any kind — " +
+      "this must remain a qualitative conversation aid only, never a basis to screen someone out.\n\n" +
+      "Candidate: " + (s.name || "unknown") + "\n" +
+      "Applying for: " + (s.role || "not specified") + "\n" +
+      "Resulting 4-letter type: " + (s.code || "unknown") + "\n" +
+      "Axis percentages (0-100, higher = further right-hand trait): " + JSON.stringify(s.axisPercents || {}) + "\n\n" +
+      "Their 60 individual answers (statement, and how much they agreed 1-5):\n" + answersSummary + "\n\n" +
+      "Write a short, specific, plain-language read of this person's likely work style for the hiring manager, " +
+      "grounded in the actual answer patterns above (not just the 4-letter label). Structure it as:\n" +
+      "1. A 2-3 sentence summary of their apparent work style.\n" +
+      "2. 3 specific strengths relevant to the role they applied for, referencing patterns in their actual answers.\n" +
+      "3. 2-3 things worth probing further in an interview, phrased neutrally (not as weaknesses/red flags).\n" +
+      "4. 3 tailored interview questions that would help verify or challenge this read, specific to the role.\n" +
+      "Keep it concise — a few sentences per section. Plain text, no markdown headers or asterisks.";
+
+    var url = "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent?key=" + GEMINI_API_KEY;
+
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    })
+      .then(function(res){ return res.json().then(function(data){ return { ok: res.ok, data: data }; }); })
+      .then(function(result){
+        if (!result.ok) {
+          throw new Error((result.data && result.data.error && result.data.error.message) || "Request failed");
+        }
+        var text = result.data.candidates && result.data.candidates[0] && result.data.candidates[0].content &&
+          result.data.candidates[0].content.parts && result.data.candidates[0].content.parts[0] &&
+          result.data.candidates[0].content.parts[0].text;
+        if (!text) throw new Error("No response text returned.");
+        var html = escapeHtml(text).replace(/\n\n+/g, "</p><p>").replace(/\n/g, "<br>");
+        aiReadCache[s.id] = "<p>" + html + "</p>";
+        container.innerHTML = "<div class='ai-read-text'>" + aiReadCache[s.id] + "</div>";
+      })
+      .catch(function(err){
+        console.error(err);
+        container.innerHTML =
+          "<p class='ai-read-error'>Couldn't generate a read: " + escapeHtml(err.message) + "</p>" +
+          "<button class='btn btn-ghost' id='btn-ai-read-retry'>Try again</button>";
+        var retryBtn = document.getElementById("btn-ai-read-retry");
+        if (retryBtn) retryBtn.addEventListener("click", function(){ generateAIRead(s); });
+      });
   }
   document.getElementById("modal-close").addEventListener("click", function(){
     document.getElementById("modal").hidden = true;
